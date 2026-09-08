@@ -23,31 +23,6 @@ El proyecto está orientado a reforzar conocimientos de desarrollo backend, pers
 - MariaDB
 - Maven
 
-# Task Manager API
-
-API REST desarrollada con Java y Spring Boot para la gestión de tareas.
-
-El proyecto está orientado a reforzar conocimientos de desarrollo backend, persistencia de datos y arquitectura por capas mediante una aplicación práctica construida desde cero.
-
-## 🚀 Funcionalidades
-
-- Crear tareas.
-- Consultar todas las tareas.
-- Consultar una tarea por ID.
-- Actualizar tareas existentes.
-- Eliminar tareas.
-- Persistencia de datos en MariaDB.
-- Gestión de errores cuando una tarea no existe.
-
-## 🛠️ Tecnologías
-
-- Java 21
-- Spring Boot
-- Spring Data JPA
-- Hibernate
-- MariaDB
-- Maven
-
 ## 🧱 Arquitectura
 
 El proyecto utiliza una estructura por capas para separar responsabilidades:
