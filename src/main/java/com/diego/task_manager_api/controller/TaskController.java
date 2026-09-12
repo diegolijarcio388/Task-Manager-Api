@@ -1,8 +1,10 @@
 package com.diego.task_manager_api.controller;
 
+import com.diego.task_manager_api.dto.CreateTaskRequest;
 import com.diego.task_manager_api.entity.Task;
 import com.diego.task_manager_api.exception.TaskNotFoundException;
 import com.diego.task_manager_api.service.TaskService;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -39,8 +41,8 @@ public class TaskController {
      * Crea una actividad
      */
     @PostMapping
-    public Task createTask (@RequestBody Task task){
-        return taskService.createTask(task);
+    public Task createTask(@RequestBody @Valid CreateTaskRequest taskRequest){
+        return taskService.createTask(taskRequest);
     }
 
     // Cuando se hace una petición GET a /tasks/{id}, se obtiene el ID de la URL

@@ -1,4 +1,5 @@
 package com.diego.task_manager_api.service;
+import com.diego.task_manager_api.dto.CreateTaskRequest;
 import com.diego.task_manager_api.entity.Task;
 import com.diego.task_manager_api.exception.TaskNotFoundException;
 import com.diego.task_manager_api.repository.TaskRepository;
@@ -29,11 +30,17 @@ public class TaskService {
     public List <Task> getAllTasks(){
         return taskRepository.findAll();
     }
+
     /**
      * Crea un Task
      */
-    public Task createTask (Task task){
-        return taskRepository.save(task);
+
+    public Task createTask (CreateTaskRequest TaskRequest){
+        Task newTask = new Task();
+        newTask.setTitle(TaskRequest.getTitle());
+        newTask.setCompleted(TaskRequest.getCompleted());
+        newTask.setDescription(TaskRequest.getDescription());
+        return taskRepository.save(newTask);
     }
 
     /**
