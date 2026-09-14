@@ -1,6 +1,7 @@
 package com.diego.task_manager_api.controller;
 
 import com.diego.task_manager_api.dto.CreateTaskRequest;
+import com.diego.task_manager_api.dto.UpdateTaskRequest;
 import com.diego.task_manager_api.entity.Task;
 import com.diego.task_manager_api.exception.TaskNotFoundException;
 import com.diego.task_manager_api.service.TaskService;
@@ -77,18 +78,11 @@ public class TaskController {
      */
 
     @PutMapping("/{id}")
-    public Task updateTask(@PathVariable Long id, @RequestBody Task task) {
-        return taskService.updateTask(id, task);
-    }
-
-    /**
-     * Redirigir un error con 404 Not Found
-     */
-
-    @ExceptionHandler(TaskNotFoundException.class)
-    public ResponseEntity<String> handleTaskNotFound(TaskNotFoundException exception){
-        return ResponseEntity
-                .status(HttpStatus.NOT_FOUND)
-                .body(exception.getMessage());
+    public Task updateTask(
+            @PathVariable Long id,
+            @RequestBody
+            @Valid
+            UpdateTaskRequest taskRequest) {
+        return taskService.updateTask(id, taskRequest);
     }
 }

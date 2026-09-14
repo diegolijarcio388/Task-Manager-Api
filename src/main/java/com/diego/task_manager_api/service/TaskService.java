@@ -1,5 +1,6 @@
 package com.diego.task_manager_api.service;
 import com.diego.task_manager_api.dto.CreateTaskRequest;
+import com.diego.task_manager_api.dto.UpdateTaskRequest;
 import com.diego.task_manager_api.entity.Task;
 import com.diego.task_manager_api.exception.TaskNotFoundException;
 import com.diego.task_manager_api.repository.TaskRepository;
@@ -68,14 +69,14 @@ public class TaskService {
     /**
      *  Actualizar tarea
      */
-    public Task updateTask(Long id, Task taskActualizado) {
+    public Task updateTask(Long id, UpdateTaskRequest taskRequest) {
         Optional<Task> task = taskRepository.findById(id);
 
         if (task.isPresent()) {
             Task existingTask = task.get();
-            existingTask.setTitle(taskActualizado.getTitle());
-            existingTask.setDescription(taskActualizado.getDescription());
-            existingTask.setCompleted(taskActualizado.isCompleted());
+            existingTask.setTitle(taskRequest.getTitle());
+            existingTask.setDescription(taskRequest.getDescription());
+            existingTask.setCompleted(taskRequest.getCompleted());
             return taskRepository.save(existingTask);
         } else {
             throw new TaskNotFoundException(
