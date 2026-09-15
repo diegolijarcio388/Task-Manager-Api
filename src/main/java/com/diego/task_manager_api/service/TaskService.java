@@ -1,5 +1,6 @@
 package com.diego.task_manager_api.service;
 import com.diego.task_manager_api.dto.CreateTaskRequest;
+import com.diego.task_manager_api.dto.TaskResponse;
 import com.diego.task_manager_api.dto.UpdateTaskRequest;
 import com.diego.task_manager_api.entity.Task;
 import com.diego.task_manager_api.exception.TaskNotFoundException;
@@ -36,19 +37,27 @@ public class TaskService {
      * Crea un Task
      */
 
-    public Task createTask (CreateTaskRequest TaskRequest){
+    public TaskResponse createTask (CreateTaskRequest TaskRequest){
         Task newTask = new Task();
         newTask.setTitle(TaskRequest.getTitle());
         newTask.setCompleted(TaskRequest.getCompleted());
         newTask.setDescription(TaskRequest.getDescription());
-        return taskRepository.save(newTask);
+        Task savedTask = taskRepository.save(newTask);
+        return new TaskResponse(
+                savedTask.getId(),
+                savedTask.getTitle(),
+                savedTask.getDescription(),
+                savedTask.isCompleted(),
+                savedTask.getCreatedAt()
+        );
+
     }
 
     /**
      * Encontrar tarea por Id
      */
-    public Optional<Task> getTaskById(Long id){
-        return taskRepository.findById(id);
+    public Task getTaskById(Long id){
+        return taskRepository.findById(id).orElseThrow(() -> new TaskNotFoundException("La tarea con el id: " + id + " no existe."));
     }
 
     /**
