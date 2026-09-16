@@ -6,6 +6,8 @@ import com.diego.task_manager_api.entity.Task;
 import com.diego.task_manager_api.exception.TaskNotFoundException;
 import com.diego.task_manager_api.repository.TaskRepository;
 import org.springframework.stereotype.Service;
+
+import java.util.ArrayList;
 import java.util.Optional;
 import java.util.List;
 
@@ -29,19 +31,30 @@ public class TaskService {
     /**
      * Obtiene todas las tareas desde la base de datos.
      */
-    public List <Task> getAllTasks(){
-        return taskRepository.findAll();
+    public List <TaskResponse> getAllTasks(){
+        List <Task> tasks = taskRepository.findAll();
+        List<TaskResponse> list = new ArrayList<>();
+        for (Task task : tasks){
+            list.add(new TaskResponse(
+                    task.getId(),
+                    task.getTitle(),
+                    task.getDescription(),
+                    task.isCompleted(),
+                    task.getCreatedAt()
+            ));
+        }
+        return list;
     }
 
     /**
      * Crea un Task
      */
 
-    public TaskResponse createTask (CreateTaskRequest TaskRequest){
+    public TaskResponse createTask (CreateTaskRequest taskRequest){
         Task newTask = new Task();
-        newTask.setTitle(TaskRequest.getTitle());
-        newTask.setCompleted(TaskRequest.getCompleted());
-        newTask.setDescription(TaskRequest.getDescription());
+        newTask.setTitle(taskRequest.getTitle());
+        newTask.setCompleted(taskRequest.getCompleted());
+        newTask.setDescription(taskRequest.getDescription());
         Task savedTask = taskRepository.save(newTask);
         return new TaskResponse(
                 savedTask.getId(),
@@ -56,8 +69,15 @@ public class TaskService {
     /**
      * Encontrar tarea por Id
      */
-    public Task getTaskById(Long id){
-        return taskRepository.findById(id).orElseThrow(() -> new TaskNotFoundException("La tarea con el id: " + id + " no existe."));
+    public TaskResponse getTaskById(Long id){
+        Task task =  taskRepository.findById(id).orElseThrow(() -> new TaskNotFoundException("La tarea con el id: " + id + " no existe."));
+        return new TaskResponse(
+                task.getId(),
+                task.getTitle(),
+                task.getDescription(),
+                task.isCompleted(),
+                task.getCreatedAt()
+        );
     }
 
     /**
@@ -78,7 +98,7 @@ public class TaskService {
     /**
      *  Actualizar tarea
      */
-    public Task updateTask(Long id, UpdateTaskRequest taskRequest) {
+    public TaskResponse updateTask(Long id, UpdateTaskRequest taskRequest) {
         Optional<Task> task = taskRepository.findById(id);
 
         if (task.isPresent()) {
@@ -86,7 +106,14 @@ public class TaskService {
             existingTask.setTitle(taskRequest.getTitle());
             existingTask.setDescription(taskRequest.getDescription());
             existingTask.setCompleted(taskRequest.getCompleted());
-            return taskRepository.save(existingTask);
+            Task savedTask = taskRepository.save(existingTask);
+            return new TaskResponse(
+                    savedTask.getId(),
+                    savedTask.getTitle(),
+                    savedTask.getDescription(),
+                    savedTask.isCompleted(),
+                    savedTask.getCreatedAt()
+            );
         } else {
             throw new TaskNotFoundException(
                     "No existe ninguna tarea con el id " + id
