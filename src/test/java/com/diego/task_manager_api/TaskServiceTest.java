@@ -7,6 +7,7 @@ import com.diego.task_manager_api.exception.TaskNotFoundException;
 import com.diego.task_manager_api.repository.TaskRepository;
 import com.diego.task_manager_api.service.TaskService;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -18,6 +19,7 @@ import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -106,6 +108,48 @@ public class TaskServiceTest {
                 .thenReturn(savedTask);
 
         TaskResponse taskResponse = taskService.createTask(createTaskRequest);
+        ArgumentCaptor<Task> taskCaptor =
+                ArgumentCaptor.forClass(Task.class);
+        verify(taskRepository).save(taskCaptor.capture());
+        Task capturedTask = taskCaptor.getValue();
+
+        // ASSERT
         assertEquals(savedTask.getTitle(), taskResponse.getTitle());
+        assertEquals(savedTask.getDescription(), taskResponse.getDescription());
+        assertEquals(savedTask.isCompleted(), taskResponse.isCompleted());
+        assertEquals(
+                createTaskRequest.getTitle(),
+                capturedTask.getTitle()
+        );
+        assertEquals(createTaskRequest.getCompleted(), capturedTask.isCompleted());
+        assertEquals(createTaskRequest.getDescription(), capturedTask.getDescription());
+    }
+    @Test
+    void deleteTaskWhenTaskExists(){
+        // ARRANGE
+        Task taskDelete = new Task();
+        taskDelete.setTitle("Task Delete");
+        taskDelete.setDescription("Task para comprobar si se borran los tasks con el verify");
+        taskDelete.setCompleted(false);
+
+        when(taskRepository.findById(7L))
+                .thenReturn(Optional.of(taskDelete));
+
+        // ACT
+        taskService.deleteTask(7L);
+        verify(taskRepository).deleteById(7L);
+
+    }
+    @Test
+    void deleteTaskWhenTaskNotExists(){
+        // ARRANGE
+        when(taskRepository.findById(7L))
+                .thenReturn(Optional.empty());
+
+        // ACT + ASSERT
+        assertThrows(
+                TaskNotFoundException.class,
+                () -> taskService.deleteTask(7L)
+        );
     }
 }
