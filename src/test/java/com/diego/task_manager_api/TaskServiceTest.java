@@ -45,7 +45,7 @@ public class TaskServiceTest {
         // ACT
         TaskResponse taskResponse = taskService.getTaskById(7L);
 
-        // ASSET
+        // ASSERT
         // Comprobar que los dos valores son iguales
         assertEquals(task.getDescription(), taskResponse.getDescription());
 
@@ -103,10 +103,9 @@ public class TaskServiceTest {
         savedTask.setDescription("Saved Task de prueba");
         savedTask.setCompleted(false);
 
-        // ACT
         when(taskRepository.save(any(Task.class)))
                 .thenReturn(savedTask);
-
+        // ACT
         TaskResponse taskResponse = taskService.createTask(createTaskRequest);
         ArgumentCaptor<Task> taskCaptor =
                 ArgumentCaptor.forClass(Task.class);
@@ -125,7 +124,7 @@ public class TaskServiceTest {
         assertEquals(createTaskRequest.getDescription(), capturedTask.getDescription());
     }
     @Test
-    void deleteTaskWhenTaskExists(){
+    void deleteTask_WhenTaskExists_DeletesTask(){
         // ARRANGE
         Task taskDelete = new Task();
         taskDelete.setTitle("Task Delete");
@@ -141,7 +140,7 @@ public class TaskServiceTest {
 
     }
     @Test
-    void deleteTaskWhenTaskNotExists(){
+    void deleteTask_WhenTaskNotExists_ThrowsNotFoundException(){
         // ARRANGE
         when(taskRepository.findById(7L))
                 .thenReturn(Optional.empty());
@@ -183,9 +182,12 @@ public class TaskServiceTest {
         verify(taskRepository).save(taskCaptor.capture());
         Task capturedTask = taskCaptor.getValue();
         assertEquals(updateTaskRequest.getTitle(), capturedTask.getTitle());
+        assertEquals(updateTaskRequest.getDescription(), capturedTask.getDescription());
+        assertEquals(updateTaskRequest.getCompleted(), capturedTask.isCompleted());
+
     }
     @Test
-    void UpdateTask_WhenTaskNotExists(){
+    void updateTask_WhenTaskNotExists_ThrowsNotFoundException(){
         // ARRANGE
         UpdateTaskRequest updateTaskRequest = new UpdateTaskRequest();
         updateTaskRequest.setTitle("Task no existente");
