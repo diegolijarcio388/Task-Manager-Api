@@ -2,6 +2,7 @@ package com.diego.task_manager_api;
 
 import com.diego.task_manager_api.dto.CreateTaskRequest;
 import com.diego.task_manager_api.dto.TaskResponse;
+import com.diego.task_manager_api.dto.UpdateTaskRequest;
 import com.diego.task_manager_api.entity.Task;
 import com.diego.task_manager_api.exception.TaskNotFoundException;
 import com.diego.task_manager_api.repository.TaskRepository;
@@ -19,8 +20,7 @@ import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 public class TaskServiceTest {
@@ -151,5 +151,55 @@ public class TaskServiceTest {
                 TaskNotFoundException.class,
                 () -> taskService.deleteTask(7L)
         );
+    }
+    @Test
+    void updateTask_WhenTaskExists_ReturnsUpdatedTaskResponse(){
+        // ARRANGE
+        Task oldTask = new Task();
+        oldTask.setTitle("Antiguo task");
+        oldTask.setDescription("Antigua descripción");
+        oldTask.setCompleted(false);
+        UpdateTaskRequest updateTaskRequest = new UpdateTaskRequest();
+        updateTaskRequest.setTitle("Nuevo task");
+        updateTaskRequest.setDescription("Nueva descripción");
+        updateTaskRequest.setCompleted(true);
+        when(taskRepository.findById(7L))
+                .thenReturn(Optional.of(oldTask));
+
+        when(taskRepository.save(any(Task.class)))
+                .thenReturn(oldTask);
+
+        // ACT
+        TaskResponse taskResponse =
+                taskService.updateTask(7L, updateTaskRequest);
+
+        assertEquals(updateTaskRequest.getTitle(), taskResponse.getTitle());
+        assertEquals(updateTaskRequest.getDescription(), taskResponse.getDescription());
+        assertEquals(updateTaskRequest.getCompleted(), taskResponse.isCompleted());
+
+        // ASSERT
+        ArgumentCaptor<Task> taskCaptor =
+                ArgumentCaptor.forClass(Task.class);
+        verify(taskRepository).save(taskCaptor.capture());
+        Task capturedTask = taskCaptor.getValue();
+        assertEquals(updateTaskRequest.getTitle(), capturedTask.getTitle());
+    }
+    @Test
+    void UpdateTask_WhenTaskNotExists(){
+        // ARRANGE
+        UpdateTaskRequest updateTaskRequest = new UpdateTaskRequest();
+        updateTaskRequest.setTitle("Task no existente");
+        updateTaskRequest.setDescription("Probando");
+        updateTaskRequest.setCompleted(true);
+
+        when(taskRepository.findById(7L))
+                .thenReturn(Optional.empty());
+
+        // ACT
+        assertThrows(
+                TaskNotFoundException.class,
+                () -> taskService.updateTask(7L, updateTaskRequest)
+        );
+        verify(taskRepository, never()).save(any(Task.class));
     }
 }
