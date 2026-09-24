@@ -61,9 +61,16 @@
 			<optional>true</optional>
 		</dependency>
 		<!-- FIXED: Replaced three non-existent test starters with the official single test starter -->
+		<!-- FIXED: Changed from spring-boot-starter-webmvc to spring-boot-starter-web -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-test</artifactId>
+			<scope>test</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-webmvc-test</artifactId>
 			<scope>test</scope>
 		</dependency>
 	</dependencies>
