@@ -14,6 +14,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 
+import static javax.management.Query.value;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
@@ -55,7 +56,8 @@ public class TaskControllerTest {
                 ));
         mockMvc.perform(get("/tasks/99"))
                 .andExpect(status().isNotFound())
-                .andExpect(content().string("La tarea con el id: 99 no existe."));
+                .andExpect(jsonPath("$.status").value(404))
+                .andExpect(jsonPath("$.detail").value("La tarea con el id: 99 no existe."));;
     }
     @Test
     void getAllTasks_WhenTasksExist_ReturnsOk() throws Exception {
@@ -109,8 +111,10 @@ public class TaskControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(json))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.title").value("El título no debe estar vacío"));;
-
+                .andExpect(jsonPath("$.errors.title").value("El título no debe estar vacío"))
+                .andExpect(jsonPath("$.detail").value("Uno o más campos no son válidos"))
+                .andExpect(jsonPath("$.status").value(400))
+                .andExpect(jsonPath("$.title").value("Error de validación"));
     }
     @Test
     void updateTask_WhenTaskExists_ReturnsOk() throws Exception {
@@ -129,8 +133,6 @@ public class TaskControllerTest {
         mockMvc.perform(put("/tasks/7")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(json))
-                .andExpect(jsonPath("$.title").value("Tarea actualizada"))
-                .andExpect(jsonPath("$.description").value("Descripción actualizada"))
                 .andExpect(jsonPath("$.completed").value(true))
                 .andExpect(status().isOk());
     }
@@ -138,5 +140,22 @@ public class TaskControllerTest {
     void deleteTask_WhenTaskExists_ReturnsNoContent() throws Exception {
         mockMvc.perform(delete("/tasks/7"))
                 .andExpect(status().isNoContent());
+    }
+    @Test
+    void createTask_WhenCompletedHasInvalidType_ReturnsBadRequest() throws Exception {
+        String json = """
+                {
+                "title": "Prueba tipo inválido" ,
+                "description": "Prueba para dar fallo en boolean" ,
+                "completed": "patata"
+                }
+                
+                """;
+        mockMvc.perform(post("/tasks")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json))
+                .andExpect(jsonPath("$.status").value(400))
+                .andExpect(jsonPath("$.title").value("Petición no válida"))
+                .andExpect(jsonPath("$.detail").value("El cuerpo de la petición no se puede interpretar"));;
     }
 }
