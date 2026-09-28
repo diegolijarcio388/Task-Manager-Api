@@ -4,6 +4,7 @@ import com.diego.task_manager_api.controller.TaskController;
 import com.diego.task_manager_api.dto.CreateTaskRequest;
 import com.diego.task_manager_api.dto.TaskResponse;
 import com.diego.task_manager_api.dto.UpdateTaskRequest;
+import com.diego.task_manager_api.entity.Task;
 import com.diego.task_manager_api.exception.TaskNotFoundException;
 import com.diego.task_manager_api.service.TaskService;
 import org.junit.jupiter.api.Test;
@@ -17,13 +18,12 @@ import org.springframework.test.web.servlet.ResultActions;
 import static javax.management.Query.value;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.mock;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
 
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -64,7 +64,7 @@ public class TaskControllerTest {
         TaskResponse taskResponse1 = new TaskResponse(1L,"Primer TaskResponse", "Primero", true, LocalDateTime.now());
         TaskResponse taskResponse2 = new TaskResponse(2L,"Segundo TaskResponse", "Segundo", true, LocalDateTime.now());
 
-        when(taskService.getAllTasks())
+        when(taskService.getAllTasks(null))
                 .thenReturn(List.of(taskResponse1,taskResponse2));
         mockMvc.perform(get("/tasks"))
                 .andExpect(status().isOk())
@@ -158,4 +158,31 @@ public class TaskControllerTest {
                 .andExpect(jsonPath("$.title").value("Petición no válida"))
                 .andExpect(jsonPath("$.detail").value("El cuerpo de la petición no se puede interpretar"));;
     }
+    @Test
+    void getAllTasks_WhenCompletedFilterIsTrue() throws Exception {
+        // ARRANGE
+        TaskResponse task1 = new TaskResponse(
+                1L,
+                "Aprender Spring",
+                "Practicar filtros",
+                true,
+                LocalDateTime.now()
+        );
+
+        TaskResponse task2 = new TaskResponse(
+                2L,
+                "Hacer tests",
+                "Probar el filtro",
+                true,
+                LocalDateTime.now()
+        );
+        when(taskService.getAllTasks(true))
+                .thenReturn(List.of(task1,task2));
+
+        mockMvc.perform(get("/tasks?completed=true"))
+                .andExpect(status().isOk());
+        // ACT + ASSET
+        verify(taskService).getAllTasks(true);
+    }
+
 }

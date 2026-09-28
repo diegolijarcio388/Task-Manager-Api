@@ -32,8 +32,14 @@ public class TaskService {
     /**
      * Obtiene todas las tareas desde la base de datos.
      */
-    public List <TaskResponse> getAllTasks(){
-        List <Task> tasks = taskRepository.findAll();
+    public List <TaskResponse> getAllTasks(Boolean completed){
+        List <Task> tasks;
+        if (completed == null){
+            tasks = taskRepository.findAll();
+        } else {
+            tasks = taskRepository.findByCompleted(completed);
+        }
+
         List<TaskResponse> list = new ArrayList<>();
         for (Task task : tasks){
             list.add(new TaskResponse(

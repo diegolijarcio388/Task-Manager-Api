@@ -68,7 +68,7 @@ public class TaskServiceTest {
         when(taskRepository.findAll())
                 .thenReturn(List.of(task1, task2));
         // ACT
-        List<TaskResponse> taskResponses = taskService.getAllTasks();
+        List<TaskResponse> taskResponses = taskService.getAllTasks(null);
 
         // ASSERT
         assertEquals(2,taskResponses.size());
@@ -203,5 +203,19 @@ public class TaskServiceTest {
                 () -> taskService.updateTask(7L, updateTaskRequest)
         );
         verify(taskRepository, never()).save(any(Task.class));
+    }
+    @Test
+    void getAllTasks_WhenCompletedIsTrue_UsesCompletedFilter() {
+        // ARRANGE
+        Task task = new Task();
+        task.setCompleted(true);
+        when(taskRepository.findByCompleted(task.isCompleted()))
+                .thenReturn(List.of(task));
+        // ACT
+        List<TaskResponse> taskResponses = taskService.getAllTasks(true);
+
+        // ASSERT
+        verify(taskRepository).findByCompleted(true);
+        assertEquals(1,taskResponses.size());
     }
 }
