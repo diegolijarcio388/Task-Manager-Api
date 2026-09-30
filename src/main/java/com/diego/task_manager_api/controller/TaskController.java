@@ -33,8 +33,11 @@ public class TaskController {
      * Devuelve todas las tareas almacenadas.
      */
     @GetMapping
-    public List<TaskResponse> getAllTasks(@RequestParam(required = false) Boolean completed) {
-        return taskService.getAllTasks(completed);
+    public List<TaskResponse> getAllTasks(
+            @RequestParam(required = false) Boolean completed,
+            @RequestParam(required = false) String search) {
+
+        return taskService.getAllTasks(completed, search);
     }
     /**
      * Crea una actividad

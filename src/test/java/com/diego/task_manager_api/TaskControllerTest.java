@@ -4,7 +4,6 @@ import com.diego.task_manager_api.controller.TaskController;
 import com.diego.task_manager_api.dto.CreateTaskRequest;
 import com.diego.task_manager_api.dto.TaskResponse;
 import com.diego.task_manager_api.dto.UpdateTaskRequest;
-import com.diego.task_manager_api.entity.Task;
 import com.diego.task_manager_api.exception.TaskNotFoundException;
 import com.diego.task_manager_api.service.TaskService;
 import org.junit.jupiter.api.Test;
@@ -64,7 +63,7 @@ public class TaskControllerTest {
         TaskResponse taskResponse1 = new TaskResponse(1L,"Primer TaskResponse", "Primero", true, LocalDateTime.now());
         TaskResponse taskResponse2 = new TaskResponse(2L,"Segundo TaskResponse", "Segundo", true, LocalDateTime.now());
 
-        when(taskService.getAllTasks(null))
+        when(taskService.getAllTasks(null, null))
                 .thenReturn(List.of(taskResponse1,taskResponse2));
         mockMvc.perform(get("/tasks"))
                 .andExpect(status().isOk())
@@ -176,13 +175,32 @@ public class TaskControllerTest {
                 true,
                 LocalDateTime.now()
         );
-        when(taskService.getAllTasks(true))
+        when(taskService.getAllTasks(true, null))
                 .thenReturn(List.of(task1,task2));
 
         mockMvc.perform(get("/tasks?completed=true"))
                 .andExpect(status().isOk());
         // ACT + ASSET
-        verify(taskService).getAllTasks(true);
+        verify(taskService).getAllTasks(true, null);
+    }
+    @Test
+    void getAllTasks_WhenSearchIsProvided() throws Exception {
+        // ARRANGE
+        TaskResponse taskResponse = new TaskResponse(
+                1L,
+                "Aprender Spring Boot",
+                "Practicar búsquedas",
+                false,
+                LocalDateTime.now()
+        );
+        when(taskService.getAllTasks(null, "spring"))
+                .thenReturn(List.of(taskResponse));
+        // ACT
+        mockMvc.perform(get("/tasks?search=spring"))
+                .andExpect(status().isOk());
+
+        // ASSERT
+        verify(taskService).getAllTasks(null, "spring");
     }
 
 }

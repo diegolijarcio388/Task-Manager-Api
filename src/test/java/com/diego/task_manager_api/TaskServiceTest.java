@@ -68,7 +68,7 @@ public class TaskServiceTest {
         when(taskRepository.findAll())
                 .thenReturn(List.of(task1, task2));
         // ACT
-        List<TaskResponse> taskResponses = taskService.getAllTasks(null);
+        List<TaskResponse> taskResponses = taskService.getAllTasks(null, null);
 
         // ASSERT
         assertEquals(2,taskResponses.size());
@@ -212,10 +212,27 @@ public class TaskServiceTest {
         when(taskRepository.findByCompleted(task.isCompleted()))
                 .thenReturn(List.of(task));
         // ACT
-        List<TaskResponse> taskResponses = taskService.getAllTasks(true);
+        List<TaskResponse> taskResponses = taskService.getAllTasks(true, null );
 
         // ASSERT
         verify(taskRepository).findByCompleted(true);
         assertEquals(1,taskResponses.size());
+    }
+    @Test
+    void getAllTasks_WhenSearchIsProvided_UsesTitleSearch() {
+        // ARRANGE
+        Task task = new Task();
+        task.setTitle("spring");
+
+        when(taskRepository.findByTitleContainingIgnoreCase("spring"))
+                .thenReturn(List.of(task));
+
+        // ACT
+
+        List<TaskResponse> taskResponses = taskService.getAllTasks(null, "spring");
+
+        // ASSERT
+        verify(taskRepository).findByTitleContainingIgnoreCase("spring");
+        assertEquals(1, taskResponses.size());
     }
 }

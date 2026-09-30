@@ -31,14 +31,20 @@ public class TaskService {
 
     /**
      * Obtiene todas las tareas desde la base de datos.
+     *
+     *  Encontrar título ignorando mayúsculas y minúsculas
+     *
      */
-    public List <TaskResponse> getAllTasks(Boolean completed){
+    public List <TaskResponse> getAllTasks(Boolean completed, String search){
         List <Task> tasks;
-        if (completed == null){
-            tasks = taskRepository.findAll();
-        } else {
+        if (search != null){
+            tasks = taskRepository.findByTitleContainingIgnoreCase(search);
+        } else if (completed != null) {
             tasks = taskRepository.findByCompleted(completed);
+        } else {
+            tasks = taskRepository.findAll();
         }
+
 
         List<TaskResponse> list = new ArrayList<>();
         for (Task task : tasks){
@@ -127,4 +133,5 @@ public class TaskService {
             );
         }
     }
+
 }
