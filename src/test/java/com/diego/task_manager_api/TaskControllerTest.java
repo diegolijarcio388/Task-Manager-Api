@@ -202,5 +202,25 @@ public class TaskControllerTest {
         // ASSERT
         verify(taskService).getAllTasks(null, "spring");
     }
+    @Test
+    void getAllTasks_WhenCompletedAndSearchAreProvided_UsesCombinedFilter() throws Exception{
+        // ARRANGE
+        TaskResponse taskResponse = new TaskResponse(
+                1L,
+                "Aprender Spring",
+                "Practicar filtros combinados",
+                true,
+                LocalDateTime.now()
+        );
+        when(taskService.getAllTasks(true, "spring"))
+                .thenReturn(List.of(taskResponse));
+        // ACT
+        mockMvc.perform(get("/tasks?completed=true&search=spring"))
+                .andExpect(status().isOk());
+
+        // ASSERT
+        verify(taskService).getAllTasks(true,"spring");
+
+    }
 
 }

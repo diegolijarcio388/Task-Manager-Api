@@ -235,4 +235,22 @@ public class TaskServiceTest {
         verify(taskRepository).findByTitleContainingIgnoreCase("spring");
         assertEquals(1, taskResponses.size());
     }
+    @Test
+    void getAllTasks_WhenCompletedAndSearchAreProvided_UsesCombinedFilter() {
+        // ARRANGE
+        Task task = new Task();
+
+        task.setTitle("spring");
+        task.setCompleted(true);
+
+        when(taskRepository.findByCompletedAndTitleContainingIgnoreCase(true, "spring"))
+                .thenReturn(List.of(task));
+
+        // ACT
+        List<TaskResponse> taskResponses = taskService.getAllTasks(true, "spring");
+
+        // ASSERT
+        verify(taskRepository).findByCompletedAndTitleContainingIgnoreCase(true, "spring");
+        assertEquals(1, taskResponses.size());
+    }
 }

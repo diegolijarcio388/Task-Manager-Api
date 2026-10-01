@@ -30,14 +30,16 @@ public class TaskService {
     }
 
     /**
-     * Obtiene todas las tareas desde la base de datos.
-     *
-     *  Encontrar título ignorando mayúsculas y minúsculas
+     * Obtiene todas las tareas desde la base de datos
+     * encontrando título ignorando mayúsculas y minúsculas
      *
      */
     public List <TaskResponse> getAllTasks(Boolean completed, String search){
         List <Task> tasks;
-        if (search != null){
+        if (completed != null && search != null) {
+            tasks = taskRepository.findByCompletedAndTitleContainingIgnoreCase(completed,search);
+        }
+        else if (search != null){
             tasks = taskRepository.findByTitleContainingIgnoreCase(search);
         } else if (completed != null) {
             tasks = taskRepository.findByCompleted(completed);
@@ -54,6 +56,36 @@ public class TaskService {
                     task.getDescription(),
                     task.isCompleted(),
                     task.getCreatedAt()
+            ));
+        }
+        return list;
+    }
+
+    /**
+     * Encontrar tarea ignorando mayúsculas y minúsculas, comprobando que existe
+     */
+
+    public List<TaskResponse> findByCompletedAndTitleContainingIgnoreCase(Boolean completed, String search){
+        List <Task> tasks;
+
+        if (completed != null && search != null) {
+            tasks = taskRepository.findByCompletedAndTitleContainingIgnoreCase(completed,search);
+        } else if (search != null) {
+            tasks = taskRepository.findByTitleContainingIgnoreCase(search);
+        } else if (completed != null) {
+            tasks = taskRepository.findByCompleted(completed);
+        } else {
+            tasks = taskRepository.findAll();
+        }
+
+        List<TaskResponse> list = new ArrayList<>();
+        for (Task tasks1 : tasks){
+            list.add(new TaskResponse(
+                    tasks1.getId(),
+                    tasks1.getTitle(),
+                    tasks1.getDescription(),
+                    tasks1.isCompleted(),
+                    tasks1.getCreatedAt()
             ));
         }
         return list;
