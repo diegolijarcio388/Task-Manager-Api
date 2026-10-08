@@ -6,7 +6,7 @@ Proyecto personal en desarrollo orientado a reforzar y demostrar conocimientos d
 
 ## 🎥 Demo
 
-▶️ [Ver demostración de la API](https://github.com/user-attachments/assets/a0eef1ee-565f-4e92-ae88-5209e980bba0)
+https://github.com/user-attachments/assets/a0eef1ee-565f-4e92-ae88-5209e980bba0
 
 En la demostración se muestran distintas operaciones de la API mediante Postman: creación, consulta, actualización y eliminación de tareas, filtros y búsqueda, paginación y gestión de errores HTTP.
 
