@@ -5,7 +5,11 @@ import com.diego.task_manager_api.dto.UpdateTaskRequest;
 import com.diego.task_manager_api.entity.Task;
 import com.diego.task_manager_api.exception.TaskNotFoundException;
 import com.diego.task_manager_api.repository.TaskRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.PageRequest;
 
 import java.util.ArrayList;
 import java.util.Optional;
@@ -34,63 +38,46 @@ public class TaskService {
      * encontrando título ignorando mayúsculas y minúsculas
      *
      */
-    public List <TaskResponse> getAllTasks(Boolean completed, String search){
+    public List <TaskResponse> getAllTasks(Boolean completed, String search, int page, int size){
         List <Task> tasks;
+        Pageable pageable = PageRequest.of(page,size);
         if (completed != null && search != null) {
-            tasks = taskRepository.findByCompletedAndTitleContainingIgnoreCase(completed,search);
+            tasks = taskRepository.findByCompletedAndTitleContainingIgnoreCase(completed,search, pageable)
+                    .getContent();
         }
         else if (search != null){
-            tasks = taskRepository.findByTitleContainingIgnoreCase(search);
+            tasks = taskRepository.findByTitleContainingIgnoreCase(search, pageable).getContent();
         } else if (completed != null) {
-            tasks = taskRepository.findByCompleted(completed);
+            tasks = taskRepository.findByCompleted(completed, pageable).getContent();
         } else {
-            tasks = taskRepository.findAll();
+            tasks = taskRepository.findAll(pageable).getContent();
         }
 
 
         List<TaskResponse> list = new ArrayList<>();
         for (Task task : tasks){
-            list.add(new TaskResponse(
-                    task.getId(),
-                    task.getTitle(),
-                    task.getDescription(),
-                    task.isCompleted(),
-                    task.getCreatedAt()
-            ));
+            list.add(toResponse(task));
         }
         return list;
     }
 
     /**
-     * Encontrar tarea ignorando mayúsculas y minúsculas, comprobando que existe
+     * Transformar directamente
      */
-
-    public List<TaskResponse> findByCompletedAndTitleContainingIgnoreCase(Boolean completed, String search){
-        List <Task> tasks;
-
-        if (completed != null && search != null) {
-            tasks = taskRepository.findByCompletedAndTitleContainingIgnoreCase(completed,search);
-        } else if (search != null) {
-            tasks = taskRepository.findByTitleContainingIgnoreCase(search);
-        } else if (completed != null) {
-            tasks = taskRepository.findByCompleted(completed);
-        } else {
-            tasks = taskRepository.findAll();
-        }
-
-        List<TaskResponse> list = new ArrayList<>();
-        for (Task tasks1 : tasks){
-            list.add(new TaskResponse(
-                    tasks1.getId(),
-                    tasks1.getTitle(),
-                    tasks1.getDescription(),
-                    tasks1.isCompleted(),
-                    tasks1.getCreatedAt()
-            ));
-        }
-        return list;
+    private TaskResponse toResponse(Task task){
+        return new TaskResponse(
+                task.getId(),
+                task.getTitle(),
+                task.getDescription(),
+                task.isCompleted(),
+                task.getCreatedAt()
+        );
     }
+    private Task findTaskById(Long id){
+        Task task =  taskRepository.findById(id).orElseThrow(() -> new TaskNotFoundException("La tarea con el id: " + id + " no existe."));
 
+        return task;
+    }
     /**
      * Crea un Task
      */
@@ -101,14 +88,7 @@ public class TaskService {
         newTask.setCompleted(taskRequest.getCompleted());
         newTask.setDescription(taskRequest.getDescription());
         Task savedTask = taskRepository.save(newTask);
-        return new TaskResponse(
-                savedTask.getId(),
-                savedTask.getTitle(),
-                savedTask.getDescription(),
-                savedTask.isCompleted(),
-                savedTask.getCreatedAt()
-        );
-
+        return toResponse(savedTask);
     }
 
     /**
@@ -116,13 +96,7 @@ public class TaskService {
      */
     public TaskResponse getTaskById(Long id){
         Task task =  taskRepository.findById(id).orElseThrow(() -> new TaskNotFoundException("La tarea con el id: " + id + " no existe."));
-        return new TaskResponse(
-                task.getId(),
-                task.getTitle(),
-                task.getDescription(),
-                task.isCompleted(),
-                task.getCreatedAt()
-        );
+        return toResponse(task);
     }
 
     /**
@@ -130,40 +104,20 @@ public class TaskService {
      */
 
     public void deleteTask(Long id){
-        Optional <Task> task = taskRepository.findById(id);
-        if (task.isPresent()){
-            taskRepository.deleteById(id);
-        } else {
-            throw new TaskNotFoundException(
-                    "No existe ninguna tarea con el id " + id
-            );
-        }
+        findTaskById(id);
+        taskRepository.deleteById(id);
     }
 
     /**
      *  Actualizar tarea
      */
     public TaskResponse updateTask(Long id, UpdateTaskRequest taskRequest) {
-        Optional<Task> task = taskRepository.findById(id);
-
-        if (task.isPresent()) {
-            Task existingTask = task.get();
-            existingTask.setTitle(taskRequest.getTitle());
-            existingTask.setDescription(taskRequest.getDescription());
-            existingTask.setCompleted(taskRequest.getCompleted());
-            Task savedTask = taskRepository.save(existingTask);
-            return new TaskResponse(
-                    savedTask.getId(),
-                    savedTask.getTitle(),
-                    savedTask.getDescription(),
-                    savedTask.isCompleted(),
-                    savedTask.getCreatedAt()
-            );
-        } else {
-            throw new TaskNotFoundException(
-                    "No existe ninguna tarea con el id " + id
-            );
-        }
+        Task existingTask = findTaskById(id);
+        existingTask.setTitle(taskRequest.getTitle());
+        existingTask.setCompleted(taskRequest.getCompleted());
+        existingTask.setDescription(taskRequest.getDescription());
+        Task savedTask = taskRepository.save(existingTask);
+        return toResponse(savedTask);
     }
 
 }

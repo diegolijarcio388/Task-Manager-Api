@@ -35,9 +35,11 @@ public class TaskController {
     @GetMapping
     public List<TaskResponse> getAllTasks(
             @RequestParam(required = false) Boolean completed,
-            @RequestParam(required = false) String search) {
+            @RequestParam(required = false) String search,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
 
-        return taskService.getAllTasks(completed, search);
+        return taskService.getAllTasks(completed, search, page, size);
     }
     /**
      * Crea una actividad
