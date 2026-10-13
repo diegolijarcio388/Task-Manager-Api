@@ -2,6 +2,7 @@ package com.diego.task_manager_api;
 
 import com.diego.task_manager_api.controller.TaskController;
 import com.diego.task_manager_api.dto.CreateTaskRequest;
+import com.diego.task_manager_api.dto.PagedResponse;
 import com.diego.task_manager_api.dto.TaskResponse;
 import com.diego.task_manager_api.dto.UpdateTaskRequest;
 import com.diego.task_manager_api.exception.TaskNotFoundException;
@@ -12,6 +13,8 @@ import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
+import com.diego.task_manager_api.dto.PagedResponse;
+
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -89,14 +92,22 @@ public class TaskControllerTest {
         );
 
         when(taskService.getAllTasks(null, null,0,20))
-                .thenReturn(List.of(taskResponse1, taskResponse2));
+                .thenReturn(new PagedResponse<>(List.of(taskResponse1, taskResponse2),0, 20,2,1));
 
         mockMvc.perform(get("/tasks"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].title")
+                .andExpect(jsonPath("$.content[0].title")
                         .value("Primer TaskResponse"))
-                .andExpect(jsonPath("$[0].description")
+                .andExpect(jsonPath("$.content[1].description")
                         .value("Primero"))
+                .andExpect(jsonPath("$.totalElements")
+                        .value(2))
+                .andExpect(jsonPath("$.totalPages")
+                        .value(1))
+                .andExpect(jsonPath("$.page")
+                        .value(0))
+                .andExpect(jsonPath("$.size")
+                        .value(20))
                 .andExpect(jsonPath("$[1].title")
                         .value("Segundo TaskResponse"))
                 .andExpect(jsonPath("$[1].description")
@@ -275,18 +286,30 @@ public class TaskControllerTest {
         );
 
         when(taskService.getAllTasks(true, null,0,20))
-                .thenReturn(List.of(task1, task2));
+                .thenReturn(new PagedResponse<>(
+                        List.of(task1, task2),
+                        0,
+                        20,
+                        2,
+                        1
+                ));
 
         // ACT + ASSERT
         mockMvc.perform(get("/tasks?completed=true"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].id").value(1))
-                .andExpect(jsonPath("$[0].title")
+                .andExpect(jsonPath("$.content[0].id")
+                        .value(1L))
+                .andExpect(jsonPath("$.content[0].title")
                         .value("Aprender Spring"))
-                .andExpect(jsonPath("$[0].completed")
-                        .value(true))
-                .andExpect(jsonPath("$[1].id").value(2))
-                .andExpect(jsonPath("$[1].title")
+                .andExpect(jsonPath("$.totalElements")
+                        .value(2))
+                .andExpect(jsonPath("$.page")
+                        .value(0))
+                .andExpect(jsonPath("$.size")
+                        .value(20))
+                .andExpect(jsonPath("$.content[0].completed").value(true))
+                .andExpect(jsonPath("$.content[1].id").value(2L))
+                .andExpect(jsonPath("$.content[1].title")
                         .value("Hacer tests"))
                 .andExpect(jsonPath("$[1].completed")
                         .value(true));
@@ -305,26 +328,39 @@ public class TaskControllerTest {
                 LocalDateTime.now()
         );
 
-        when(taskService.getAllTasks(null, "spring", 0,20))
-                .thenReturn(List.of(taskResponse));
+        when(taskService.getAllTasks(null, "spring", 0, 20))
+                .thenReturn(new PagedResponse<>(
+                        List.of(taskResponse),
+                0,
+                20,
+                1,
+                1
+        ));
 
         // ACT + ASSERT
         mockMvc.perform(get("/tasks?search=spring"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].id").value(1))
+                .andExpect(jsonPath("$.content[0].id").value(1))
                 .andExpect(jsonPath("$[0].title")
                         .value("Aprender Spring Boot"))
-                .andExpect(jsonPath("$[0].description")
-                        .value("Practicar búsquedas"))
+                .andExpect(jsonPath("$.content[0].description").value("Practicar búsquedas"))
                 .andExpect(jsonPath("$[0].completed")
-                        .value(false));
+                        .value(false))
+                .andExpect(jsonPath("$.page")
+                        .value(0))
+                .andExpect(jsonPath("$.size")
+                        .value(20))
+                .andExpect(jsonPath("$.totalElements")
+                        .value(0))
+                .andExpect(jsonPath("$.totalPages")
+                        .value(1));
+
 
         verify(taskService).getAllTasks(null, "spring",0,20);
     }
 
     @Test
-    void getAllTasks_WhenCompletedAndSearchAreProvided_UsesCombinedFilter()
-            throws Exception {
+    void getAllTasks_WhenCompletedAndSearchAreProvided_UsesCombinedFilter() throws Exception {
 
         // ARRANGE
         TaskResponse taskResponse = new TaskResponse(
@@ -335,19 +371,33 @@ public class TaskControllerTest {
                 LocalDateTime.now()
         );
 
-        when(taskService.getAllTasks(true, "spring",0,20))
-                .thenReturn(List.of(taskResponse));
+        when(taskService.getAllTasks(true, "spring", 0, 20))
+                .thenReturn(new PagedResponse<>(
+                        List.of(taskResponse),
+                        0,
+                        20,
+                        1,
+                        1
+        ));
 
         // ACT + ASSERT
         mockMvc.perform(get("/tasks?completed=true&search=spring"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].id").value(1))
-                .andExpect(jsonPath("$[0].title")
+                .andExpect(jsonPath("$.content[0].id").value(1))
+                .andExpect(jsonPath("$.content[0].title")
                         .value("Aprender Spring"))
-                .andExpect(jsonPath("$[0].description")
+                .andExpect(jsonPath("$.content[0].description")
                         .value("Practicar filtros combinados"))
                 .andExpect(jsonPath("$[0].completed")
-                        .value(true));
+                        .value(true))
+                .andExpect(jsonPath("$.page")
+                        .value(0))
+                .andExpect(jsonPath("$.size")
+                        .value(20))
+                .andExpect(jsonPath("$.totalElements")
+                        .value(1))
+                .andExpect(jsonPath("$.totalPages")
+                        .value(1));
 
         verify(taskService).getAllTasks(true, "spring",0,20);
     }

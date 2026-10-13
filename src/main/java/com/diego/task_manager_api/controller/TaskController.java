@@ -7,6 +7,8 @@ import com.diego.task_manager_api.service.TaskService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import com.diego.task_manager_api.dto.PagedResponse;
+
 
 import java.net.URI;
 import java.util.List;
@@ -33,7 +35,7 @@ public class TaskController {
      * Devuelve todas las tareas almacenadas.
      */
     @GetMapping
-    public List<TaskResponse> getAllTasks(
+    public PagedResponse<TaskResponse> getAllTasks(
             @RequestParam(required = false) Boolean completed,
             @RequestParam(required = false) String search,
             @RequestParam(defaultValue = "0") int page,

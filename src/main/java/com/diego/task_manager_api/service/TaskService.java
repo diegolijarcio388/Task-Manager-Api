@@ -10,6 +10,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.PageRequest;
+import com.diego.task_manager_api.dto.PagedResponse;
 
 import java.util.ArrayList;
 import java.util.Optional;
@@ -38,27 +39,27 @@ public class TaskService {
      * encontrando título ignorando mayúsculas y minúsculas
      *
      */
-    public List <TaskResponse> getAllTasks(Boolean completed, String search, int page, int size){
-        List <Task> tasks;
+    public PagedResponse <TaskResponse> getAllTasks(Boolean completed, String search, int page, int size){
+        Page <Task> tasks;
         Pageable pageable = PageRequest.of(page,size);
+        Page<Task> taskPage = taskRepository.findAll(pageable);
         if (completed != null && search != null) {
-            tasks = taskRepository.findByCompletedAndTitleContainingIgnoreCase(completed,search, pageable)
-                    .getContent();
+            taskPage = taskRepository.findByCompletedAndTitleContainingIgnoreCase(completed,search, pageable);
         }
         else if (search != null){
-            tasks = taskRepository.findByTitleContainingIgnoreCase(search, pageable).getContent();
+            taskPage = taskRepository.findByTitleContainingIgnoreCase(search, pageable);
         } else if (completed != null) {
-            tasks = taskRepository.findByCompleted(completed, pageable).getContent();
+            taskPage = taskRepository.findByCompleted(completed, pageable);
         } else {
-            tasks = taskRepository.findAll(pageable).getContent();
+            taskPage = taskRepository.findAll(pageable);
         }
 
 
         List<TaskResponse> list = new ArrayList<>();
-        for (Task task : tasks){
+        for (Task task : taskPage.getContent()){
             list.add(toResponse(task));
         }
-        return list;
+        return new PagedResponse<>(list,page,size, taskPage.getTotalElements(), taskPage.getTotalPages());
     }
 
     /**
