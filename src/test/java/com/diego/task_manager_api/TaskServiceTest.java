@@ -1,6 +1,7 @@
 package com.diego.task_manager_api;
 
 import com.diego.task_manager_api.dto.CreateTaskRequest;
+import com.diego.task_manager_api.dto.PagedResponse;
 import com.diego.task_manager_api.dto.TaskResponse;
 import com.diego.task_manager_api.dto.UpdateTaskRequest;
 import com.diego.task_manager_api.entity.Task;
@@ -20,8 +21,7 @@ import org.springframework.data.domain.Pageable;
 import java.util.List;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -71,12 +71,16 @@ public class TaskServiceTest {
         when(taskRepository.findAll(Pageable.ofSize(20)))
                 .thenReturn (new PageImpl<>(List.of(task1, task2)));
         // ACT
-        List<TaskResponse> taskResponses = taskService.getAllTasks(null, null,0,20);
+        PagedResponse<TaskResponse> taskResponses = taskService.getAllTasks(null, null,0,20);
 
         // ASSERT
-        assertEquals(2,taskResponses.size());
-        assertEquals(task1.getTitle(),taskResponses.getFirst().getTitle());
-        assertEquals(task2.getTitle(),taskResponses.get(1).getTitle());
+        assertEquals(2,taskResponses.getContent().size());
+        assertEquals(task1.getTitle(),taskResponses.getContent().getFirst().getTitle());
+        assertEquals(task2.getTitle(),taskResponses.getContent().get(1).getTitle());
+        assertEquals(0,taskResponses.getPage());
+        assertEquals(20,taskResponses.getSize());
+        assertEquals(1, taskResponses.getTotalPages());
+
         verify(taskRepository).findAll(Pageable.ofSize(20));
     }
     @Test
@@ -215,11 +219,11 @@ public class TaskServiceTest {
         when(taskRepository.findByCompleted(task.isCompleted(), Pageable.ofSize(20)))
                 .thenReturn (new PageImpl<>(List.of(task)));
         // ACT
-        List<TaskResponse> taskResponses = taskService.getAllTasks(true, null,0,20);
+        PagedResponse<TaskResponse> taskResponses = taskService.getAllTasks(true, null,0,20);
 
         // ASSERT
         verify(taskRepository).findByCompleted(true, Pageable.ofSize(20));
-        assertEquals(1,taskResponses.size());
+        assertEquals(1, taskResponses.getTotalElements());
     }
     @Test
     void getAllTasks_WhenSearchIsProvided_UsesTitleSearch() {
@@ -232,11 +236,12 @@ public class TaskServiceTest {
 
         // ACT
 
-        List<TaskResponse> taskResponses = taskService.getAllTasks(null, "spring",0,20);
+        PagedResponse<TaskResponse> taskResponses = taskService.getAllTasks(null, "spring",0,20);
 
         // ASSERT
         verify(taskRepository).findByTitleContainingIgnoreCase("spring", Pageable.ofSize(20));
-        assertEquals(1, taskResponses.size());
+        assertEquals(1, taskResponses.getTotalElements());
+        assertEquals("spring", taskResponses.getContent().getFirst().getTitle());
     }
     @Test
     void getAllTasks_WhenCompletedAndSearchAreProvided_UsesCombinedFilter() {
@@ -250,11 +255,12 @@ public class TaskServiceTest {
                 .thenReturn(new PageImpl<>(List.of(task)));
 
         // ACT
-        List<TaskResponse> taskResponses = taskService.getAllTasks(true, "spring",0,20);
+        PagedResponse<TaskResponse> taskResponses = taskService.getAllTasks(true, "spring",0,20);
 
         // ASSERT
         verify(taskRepository).findByCompletedAndTitleContainingIgnoreCase(true, "spring",Pageable.ofSize(20));
-        assertEquals(1, taskResponses.size());
+        assertEquals(1, taskResponses.getContent().size());
+        assertTrue(taskResponses.getContent().getFirst().isCompleted());
     }
     @Test
     void getAllTasks_WhenCustomPaginationIsProvided_UsesRequestedPageAndSize() {
@@ -263,13 +269,17 @@ public class TaskServiceTest {
         task.setTitle("Tarea de la segunda página");
         Pageable pageable = PageRequest.of(1,5);
         when(taskRepository.findAll(pageable))
-                .thenReturn (new PageImpl<>(List.of(task)));
+                .thenReturn(new PageImpl<>(List.of(task), pageable, 6));
         // ACT
-        List <TaskResponse> taskResponses = taskService.getAllTasks(null,null,1,5);
+        PagedResponse<TaskResponse> taskResponses = taskService.getAllTasks(null,null,1,5);
 
         // ASSERT
         verify(taskRepository).findAll(pageable);
-        assertEquals(task.getTitle(), taskResponses.getFirst().getTitle());
-        assertEquals(1,taskResponses.size());
+        assertEquals(task.getTitle(), taskResponses.getContent().getFirst().getTitle());
+        assertEquals(1,taskResponses.getContent().size());
+        assertEquals(1,taskResponses.getPage());
+        assertEquals(5,taskResponses.getSize());
+        assertEquals(6, taskResponses.getTotalElements());
+        assertEquals(2,taskResponses.getTotalPages());
     }
 }

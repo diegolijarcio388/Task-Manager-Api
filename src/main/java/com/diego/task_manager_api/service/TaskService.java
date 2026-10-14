@@ -40,9 +40,8 @@ public class TaskService {
      *
      */
     public PagedResponse <TaskResponse> getAllTasks(Boolean completed, String search, int page, int size){
-        Page <Task> tasks;
-        Pageable pageable = PageRequest.of(page,size);
-        Page<Task> taskPage = taskRepository.findAll(pageable);
+        Page<Task> taskPage;
+        Pageable pageable = PageRequest.of(page, size);
         if (completed != null && search != null) {
             taskPage = taskRepository.findByCompletedAndTitleContainingIgnoreCase(completed,search, pageable);
         }

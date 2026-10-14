@@ -99,7 +99,7 @@ public class TaskControllerTest {
                 .andExpect(jsonPath("$.content[0].title")
                         .value("Primer TaskResponse"))
                 .andExpect(jsonPath("$.content[1].description")
-                        .value("Primero"))
+                        .value("Segundo"))
                 .andExpect(jsonPath("$.totalElements")
                         .value(2))
                 .andExpect(jsonPath("$.totalPages")
@@ -108,9 +108,9 @@ public class TaskControllerTest {
                         .value(0))
                 .andExpect(jsonPath("$.size")
                         .value(20))
-                .andExpect(jsonPath("$[1].title")
+                .andExpect(jsonPath("$.content[1].title")
                         .value("Segundo TaskResponse"))
-                .andExpect(jsonPath("$[1].description")
+                .andExpect(jsonPath("$.content[1].description")
                         .value("Segundo"));
     }
 
@@ -311,7 +311,7 @@ public class TaskControllerTest {
                 .andExpect(jsonPath("$.content[1].id").value(2L))
                 .andExpect(jsonPath("$.content[1].title")
                         .value("Hacer tests"))
-                .andExpect(jsonPath("$[1].completed")
+                .andExpect(jsonPath("$.content[1].completed")
                         .value(true));
 
         verify(taskService).getAllTasks(true, null,0,20);
@@ -341,17 +341,17 @@ public class TaskControllerTest {
         mockMvc.perform(get("/tasks?search=spring"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content[0].id").value(1))
-                .andExpect(jsonPath("$[0].title")
+                .andExpect(jsonPath("$.content[0].title")
                         .value("Aprender Spring Boot"))
                 .andExpect(jsonPath("$.content[0].description").value("Practicar búsquedas"))
-                .andExpect(jsonPath("$[0].completed")
+                .andExpect(jsonPath("$.content[0].completed")
                         .value(false))
                 .andExpect(jsonPath("$.page")
                         .value(0))
                 .andExpect(jsonPath("$.size")
                         .value(20))
                 .andExpect(jsonPath("$.totalElements")
-                        .value(0))
+                        .value(1))
                 .andExpect(jsonPath("$.totalPages")
                         .value(1));
 
@@ -388,7 +388,7 @@ public class TaskControllerTest {
                         .value("Aprender Spring"))
                 .andExpect(jsonPath("$.content[0].description")
                         .value("Practicar filtros combinados"))
-                .andExpect(jsonPath("$[0].completed")
+                .andExpect(jsonPath("$.content[0].completed")
                         .value(true))
                 .andExpect(jsonPath("$.page")
                         .value(0))
