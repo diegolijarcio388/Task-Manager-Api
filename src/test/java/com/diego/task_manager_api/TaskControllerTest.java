@@ -361,7 +361,6 @@ public class TaskControllerTest {
 
     @Test
     void getAllTasks_WhenCompletedAndSearchAreProvided_UsesCombinedFilter() throws Exception {
-
         // ARRANGE
         TaskResponse taskResponse = new TaskResponse(
                 1L,
@@ -401,4 +400,29 @@ public class TaskControllerTest {
 
         verify(taskService).getAllTasks(true, "spring",0,20);
     }
+        @Test
+        void getAllTasks_WhenPageIsNegative_ReturnsBadRequest() throws Exception {
+        mockMvc.perform(get("/tasks")
+            .param("page", "-1"))
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.title").value("Error de paginación"))
+            .andExpect(jsonPath("$.detail").value("La página no puede ser negativa"));
+        }
+        @Test
+        void getAllTasks_WhenSizeIsZero_ReturnsBadRequest() throws Exception{
+                mockMvc.perform(get("/tasks")
+                .param("size", "0"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.detail")
+                .value("El tamaño de página debe ser como mínimo 1"));;
+        }
+        @Test 
+        void getAllTasks_WhenSizeExceedsMaximum_ReturnsBadRequest() throws Exception{
+                mockMvc.perform(get("/tasks")
+                .param("size","101"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.detail")
+                .value("El tamaño de página no puede superar 100"));
+        }
+
 }

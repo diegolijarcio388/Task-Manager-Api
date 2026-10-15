@@ -1,15 +1,19 @@
 package com.diego.task_manager_api.exception;
 
-import org.apache.coyote.Response;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.HandlerMethodValidationException;
+import org.springframework.context.MessageSourceResolvable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.web.method.annotation.HandlerMethodValidationException;
+import org.springframework.validation.method.ParameterValidationResult;
+import org.springframework.context.MessageSourceResolvable;
+
 
 import java.util.HashMap;
 import java.util.List;
@@ -72,5 +76,18 @@ public class GlobalExceptionHandler {
                 .body(problem);
 
     }
+        @ExceptionHandler(HandlerMethodValidationException.class)
+        public ResponseEntity<ProblemDetail> handleMethodValidationException(
+                HandlerMethodValidationException exception) {
+
+        ProblemDetail problem = ProblemDetail.forStatus(HttpStatus.BAD_REQUEST);
+        problem.setTitle("Error de paginación");
+
+            for (MessageSourceResolvable error : exception.getAllErrors()) {
+                problem.setDetail(error.getDefaultMessage());
+            }
+
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(problem);
+        }
 
 }

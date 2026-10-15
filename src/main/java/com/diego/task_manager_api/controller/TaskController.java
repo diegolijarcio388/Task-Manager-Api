@@ -8,6 +8,8 @@ import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import com.diego.task_manager_api.dto.PagedResponse;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.Max;
 
 
 import java.net.URI;
@@ -38,11 +40,16 @@ public class TaskController {
     public PagedResponse<TaskResponse> getAllTasks(
             @RequestParam(required = false) Boolean completed,
             @RequestParam(required = false) String search,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "20") int size) {
+            @RequestParam(defaultValue = "0") 
+            @Min(value = 0, message = "La página no puede ser negativa")
+            int page,
+            @RequestParam(defaultValue = "20")
+            @Min(value = 1, message = "El tamaño de página debe ser como mínimo 1")
+            @Max(value = 100, message = "El tamaño de página no puede superar 100")
+            int size) {
 
         return taskService.getAllTasks(completed, search, page, size);
-    }
+    } 
     /**
      * Crea una actividad
      */
