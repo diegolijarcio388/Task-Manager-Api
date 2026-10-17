@@ -9,9 +9,11 @@ spring:
     hibernate:
       ddl-auto: ${DB_DDL_AUTO:update}
 
-
     show-sql: ${DB_SHOW_SQL:true}
 
     properties:
       hibernate:
         format_sql: true
+
+server:
+  port: ${PORT:8080}
