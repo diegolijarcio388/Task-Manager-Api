@@ -1,5 +1,6 @@
 package com.diego.task_manager_api;
 
+import com.diego.task_manager_api.config.SecurityConfig;
 import com.diego.task_manager_api.controller.TaskController;
 import com.diego.task_manager_api.dto.CreateTaskRequest;
 import com.diego.task_manager_api.dto.PagedResponse;
@@ -9,12 +10,18 @@ import com.diego.task_manager_api.exception.TaskNotFoundException;
 import com.diego.task_manager_api.service.TaskService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
-import com.diego.task_manager_api.dto.PagedResponse;
 
+import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Import;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -24,9 +31,25 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic;
 
 @WebMvcTest(TaskController.class)
+@AutoConfigureMockMvc(addFilters = true)
+@Import({SecurityConfig.class, TaskControllerTest.TestSecurityUsers.class})
 public class TaskControllerTest {
+
+    @TestConfiguration
+    static class TestSecurityUsers {
+        @Bean
+        UserDetailsService userDetailsService() {
+            return new InMemoryUserDetailsManager(
+                    User.withUsername("test")
+                            .password("{noop}test-password")
+                            .roles("USER")
+                            .build()
+            );
+        }
+    }
 
     @MockitoBean
     private TaskService taskService;
@@ -136,6 +159,7 @@ public class TaskControllerTest {
                 .thenReturn(taskResponseDefault);
 
         mockMvc.perform(post("/tasks")
+                .with(httpBasic("test", "test-password"))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(json))
                 .andExpect(status().isCreated())
@@ -157,6 +181,7 @@ public class TaskControllerTest {
                 """;
 
         mockMvc.perform(post("/tasks")
+                .with(httpBasic("test", "test-password"))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(json))
                 .andExpect(status().isBadRequest())
@@ -193,6 +218,7 @@ public class TaskControllerTest {
                 .thenReturn(updatedTask);
 
         mockMvc.perform(put("/tasks/7")
+                .with(httpBasic("test", "test-password"))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(json))
                 .andExpect(status().isOk())
@@ -218,6 +244,7 @@ public class TaskControllerTest {
 
         // ACT + ASSERT
         mockMvc.perform(put("/tasks/7")
+                .with(httpBasic("test", "test-password"))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(json))
                 .andExpect(status().isNotFound())
@@ -227,7 +254,8 @@ public class TaskControllerTest {
     }
     @Test
     void deleteTask_WhenTaskExists_ReturnsNoContent() throws Exception {
-        mockMvc.perform(delete("/tasks/7"))
+        mockMvc.perform(delete("/tasks/7")
+                .with(httpBasic("test", "test-password")))
                 .andExpect(status().isNoContent());
     }
     @Test
@@ -235,7 +263,8 @@ public class TaskControllerTest {
         doThrow(new TaskNotFoundException("La tarea con el id 7 no existe"))
                 .when(taskService)
                 .deleteTask(7L);
-        mockMvc.perform(delete("/tasks/7"))
+        mockMvc.perform(delete("/tasks/7")
+                .with(httpBasic("test", "test-password")))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.detail")
                         .value("La tarea con el id 7 no existe")
@@ -256,6 +285,7 @@ public class TaskControllerTest {
                 """;
 
         mockMvc.perform(post("/tasks")
+                .with(httpBasic("test", "test-password"))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(json))
                 .andExpect(status().isBadRequest())
@@ -400,29 +430,37 @@ public class TaskControllerTest {
 
         verify(taskService).getAllTasks(true, "spring",0,20);
     }
-        @Test
-        void getAllTasks_WhenPageIsNegative_ReturnsBadRequest() throws Exception {
+    @Test
+    void getAllTasks_WhenPageIsNegative_ReturnsBadRequest() throws Exception {
         mockMvc.perform(get("/tasks")
             .param("page", "-1"))
             .andExpect(status().isBadRequest())
             .andExpect(jsonPath("$.title").value("Error de paginación"))
             .andExpect(jsonPath("$.detail").value("La página no puede ser negativa"));
         }
-        @Test
-        void getAllTasks_WhenSizeIsZero_ReturnsBadRequest() throws Exception{
+    @Test
+    void getAllTasks_WhenSizeIsZero_ReturnsBadRequest() throws Exception{
                 mockMvc.perform(get("/tasks")
                 .param("size", "0"))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.detail")
-                .value("El tamaño de página debe ser como mínimo 1"));;
+                .value("El tamaño de página debe ser como mínimo 1"));
         }
-        @Test 
-        void getAllTasks_WhenSizeExceedsMaximum_ReturnsBadRequest() throws Exception{
+    @Test
+    void getAllTasks_WhenSizeExceedsMaximum_ReturnsBadRequest() throws Exception{
                 mockMvc.perform(get("/tasks")
                 .param("size","101"))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.detail")
                 .value("El tamaño de página no puede superar 100"));
         }
+    @Test
+    void createTask_WithoutAuthentication_ReturnsUnauthorized() throws Exception {
+            mockMvc.perform(post("/tasks")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content("{}")
+            )
+                    .andExpect(status().isUnauthorized());
 
+        }
 }

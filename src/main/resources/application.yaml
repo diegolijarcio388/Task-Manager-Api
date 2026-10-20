@@ -14,6 +14,10 @@ spring:
     properties:
       hibernate:
         format_sql: true
+  security:
+    user:
+      name: ${API_USERNAME}
+      password: ${API_PASSWORD}
 
 server:
   port: ${PORT:8080}
