@@ -5,13 +5,18 @@ import io.swagger.v3.oas.models.security.SecurityRequirement;
 import io.swagger.v3.oas.models.security.SecurityScheme;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import io.swagger.v3.oas.models.servers.Server;
+import org.springframework.beans.factory.annotation.Value;
+import io.swagger.v3.oas.models.servers.Server;
 
 @Configuration
 public class OpenApiConfig {
 
     @Bean
-    public OpenAPI customOpenAPI() {
-        return new OpenAPI()
+    public OpenAPI customOpenAPI(
+            @Value("${app.public-url:}") String publicUrl
+    ) {
+        OpenAPI openAPI = new OpenAPI()
                 .addSecurityItem(new SecurityRequirement().addList("basicAuth"))
                 .schemaRequirement(
                         "basicAuth",
@@ -19,5 +24,11 @@ public class OpenApiConfig {
                                 .type(SecurityScheme.Type.HTTP)
                                 .scheme("basic")
                 );
+
+        if (!publicUrl.isBlank()) {
+            openAPI.addServersItem(new Server().url(publicUrl));
+        }
+
+        return openAPI;
     }
 }
