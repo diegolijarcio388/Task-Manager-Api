@@ -6,9 +6,13 @@ Proyecto personal en desarrollo orientado a reforzar y demostrar conocimientos d
 
 ## 🎥 Demo
 
-https://github.com/user-attachments/assets/a0eef1ee-565f-4e92-ae88-5209e980bba0
+https://github.com/user-attachments/assets/cb23610f-a742-48ff-ab6b-cecbb3c2fe51
 
-En la demostración se muestran distintas operaciones de la API mediante Postman: creación, consulta, actualización y eliminación de tareas, filtros y búsqueda, paginación y gestión de errores HTTP.
+Demostración de la API REST desplegada mediante **Swagger UI (OpenAPI)**, incluyendo consulta, creación, actualización y eliminación de tareas, validación de datos y respuestas HTTP.
+
+🔗 **[Probar Swagger UI](https://r9tqe3.bot-keep.xyz/swagger-ui/index.html)**
+
+Las operaciones `GET` son públicas. Las operaciones de creación, actualización y eliminación requieren autenticación **HTTP Basic**.
 
 ## 🚀 Funcionalidades
 
