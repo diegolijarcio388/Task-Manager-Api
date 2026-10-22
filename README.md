@@ -24,7 +24,8 @@ Las operaciones `GET` son públicas. Las operaciones de creación, actualizació
 - Filtrar tareas por estado (`completed`).
 - Buscar tareas por texto.
 - Paginar los resultados.
-- Persistencia de datos en MariaDB mediante Spring Data JPA.
+- Persistencia de datos en MySQL (Aiven) mediante Spring Data JPA.
+- Autenticación HTTP Basic para las operaciones de escritura.
 - Uso de DTOs para las peticiones y respuestas de la API.
 - Validación de datos de entrada.
 - Gestión centralizada de excepciones.
@@ -36,12 +37,13 @@ Las operaciones `GET` son públicas. Las operaciones de creación, actualizació
 - Spring Boot
 - Spring Data JPA
 - Hibernate
-- MariaDB
+- MySQL (Aiven)
 - Maven
 - JUnit
 - Mockito
 - MockMvc
-- Postman
+- Spring Security (HTTP Basic)
+- Springdoc OpenAPI / Swagger UI
 
 ## 🧱 Arquitectura
 
@@ -55,3 +57,4 @@ Service
 Repository
     ↓
 Database
+```
